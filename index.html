@@ -3,106 +3,151 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>公約数を見つけよう！</title>
+<title>公約数を見つけよう！（モバイル対応）</title>
 <style>
   :root{
+    /* 自動可変（スマホ〜タブレット〜PC） */
+    --chip: clamp(44px, 9vw, 80px);        /* タイルの最小一辺 */
+    --gap: clamp(6px, 1.8vw, 14px);        /* グリッド間隔 */
+    --pad: clamp(10px, 2.4vw, 20px);       /* 全体のパディング */
+    --radius: 18px;
+    --shadow: 0 8px 22px rgba(0,0,0,.06);
+
     --bg:#f7f8fb; --ink:#111827; --muted:#6b7280; --card:#ffffff; --border:#e5e7eb;
+    --accent:#2563eb;
+
     --hit:#10b981;           /* 公約数（緑） */
     --hit-border:#065f46;
-    --accent:#2563eb;        /* ボタン色 */
-    --radius:18px; --shadow:0 8px 22px rgba(0,0,0,.06);
-    --cell-min:56px; --gap:10px;
+
     --divA-bg:#fff7cc;       /* 数１の約数（薄い黄色） */
     --divA-bd:#f2cf4a;
     --divB-bg:#ffe4ec;       /* 数２の約数（薄いピンク） */
     --divB-bd:#f3a9bf;
   }
-  *{box-sizing:border-box}
+  *{box-sizing:border-box; -webkit-tap-highlight-color: transparent;}
   html,body{height:100%}
   body{
-    margin:0; font-family: "Inter","BIZ UDPGothic","Hiragino Kaku Gothic ProN",system-ui,sans-serif;
+    margin:0; font-family:"Inter","BIZ UDPGothic","Hiragino Kaku Gothic ProN",system-ui,sans-serif;
     background:var(--bg); color:var(--ink);
-    padding: clamp(10px, 2vw, 20px);
+    padding: var(--pad);
   }
-  .wrap{max-width:980px; margin:0 auto}
+  .wrap{max-width:1000px; margin:0 auto}
   .card{
     background:var(--card); border:1px solid var(--border);
     border-radius:var(--radius); box-shadow:var(--shadow);
-    padding: clamp(12px,2.5vw,20px);
+    padding: var(--pad);
   }
-  h1{font-size:clamp(22px,3.5vw,32px); margin:.2em 0 .6em}
+  h1{font-size:clamp(20px, 4.8vw, 32px); margin:.2em 0 .6em}
+
+  /* 上部の入力行：モバイルは縦積み、横向きや広い画面で横並び */
   .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
   .grow{flex:1}
   .picker{
     display:flex; align-items:center; gap:8px;
     background:#fff; border:1px solid var(--border); border-radius:14px; padding:8px;
+    min-width:min(100%, 520px);
   }
-  .picker label{font-weight:700; color:#111; min-width:3em}
+  .picker label{font-weight:700; color:#111; min-width:3em; font-size:clamp(14px,2.8vw,18px)}
   .nbox{
-    display:flex; align-items:center; gap:6px;
+    display:flex; align-items:center; gap:8px;
     background:#f9fafb; border:1px solid var(--border); border-radius:12px; padding:6px;
+    margin-left:auto;
   }
   .nbox input{
-    width:90px; font-size:20px; padding:8px 10px; border:1px solid var(--border); border-radius:10px;
+    width: clamp(88px, 18vw, 120px);
+    font-size: clamp(18px, 4.5vw, 22px);
+    padding:10px 12px; border:1px solid var(--border); border-radius:10px;
+    -moz-appearance: textfield;
   }
+  .nbox input::-webkit-outer-spin-button,
+  .nbox input::-webkit-inner-spin-button{ -webkit-appearance: none; margin: 0; }
   .nbox button{
-    width:44px; height:44px; border-radius:12px; border:1px solid var(--border); background:#fff; font-size:20px; cursor:pointer;
+    width: clamp(44px, 9vw, 56px); height: clamp(44px, 9vw, 56px);
+    border-radius:12px; border:1px solid var(--border); background:#fff;
+    font-size: clamp(18px, 5vw, 22px); cursor:pointer;
+    display:grid; place-items:center;
   }
-  .actions{display:flex; gap:10px; flex-wrap:wrap}
+  .nbox button:active{transform:scale(.98)}
+
+  /* 操作ボタン群を常に見えるように（カード上部に張り付き） */
+  .actions{
+    position: sticky; top: calc(env(safe-area-inset-top) + 6px);
+    background:linear-gradient(#fff, #fff0);
+    padding-top:6px; padding-bottom:6px;
+    display:flex; gap:10px; flex-wrap:wrap; z-index:10;
+  }
   .btn{
     appearance:none; border:none; cursor:pointer;
     background:var(--accent); color:#fff; font-weight:700;
-    padding:14px 18px; border-radius:14px; font-size:18px;
+    padding: clamp(12px, 2.6vw, 16px) clamp(14px, 3vw, 18px);
+    border-radius:14px; font-size: clamp(16px, 3.8vw, 18px);
+    min-height: clamp(44px, 9vw, 56px);
   }
   .btn.secondary{background:#fff; color:#111; border:1px solid var(--border)}
-  .btn.icon{display:flex; align-items:center; gap:8px}
-  .grid{
-    display:grid; gap:var(--gap);
-    grid-template-columns: repeat(auto-fill, minmax(min(70px, 16vw), 1fr));
+  .btn:active{transform:translateY(1px)}
+
+  /* 縦＝上下に、横＝左右に並べるためのラッパー */
+  .panes{
+    display:grid; gap: var(--gap);
   }
+  @media (orientation: landscape) and (min-width: 700px){
+    .panes{
+      grid-template-columns: 1fr 1fr;
+      align-items:start;
+    }
+  }
+
   .label{
-    font-weight:700; color:#111; margin:18px 0 8px;
-    display:flex; align-items:center; gap:8px;
+    font-weight:700; color:#111; margin:14px 0 8px;
+    display:flex; align-items:center; gap:8px; font-size: clamp(14px,3.2vw,16px);
   }
-  .legend{display:flex; gap:10px; align-items:center; font-size:14px; color:var(--muted)}
+  .legend{display:flex; gap:10px; align-items:center; font-size:clamp(12px,3vw,14px); color:var(--muted)}
   .legend .box{width:14px; height:14px; border-radius:4px; border:1px solid var(--border)}
   .legend .y{background:var(--divA-bg); border-color:var(--divA-bd)}
   .legend .p{background:var(--divB-bg); border-color:var(--divB-bd)}
   .legend .g{background:#ecfdf5; border-color:var(--hit-border)}
+
+  .grid{
+    display:grid; gap: var(--gap);
+    grid-template-columns: repeat(auto-fill, minmax(var(--chip), 1fr));
+  }
   .chip{
     display:inline-flex; align-items:center; justify-content:center;
-    min-width:var(--cell-min); min-height:var(--cell-min);
+    min-width: var(--chip); min-height: var(--chip);
     background:#fff; border:2px solid #e5e7eb; border-radius:12px;
-    font-size:20px; user-select:none;
+    font-size: clamp(18px, 4.6vw, 22px); user-select:none;
   }
   /* 約数の色付け（段ごと） */
   .chip.divA{ background: var(--divA-bg); border-color: var(--divA-bd); }
   .chip.divB{ background: var(--divB-bg); border-color: var(--divB-bd); }
-  /* 共通の強調（公約数ボタン押下後） */
+  /* 共通の強調（公約数） */
   .chip.hit{
     background:#ecfdf5 !important; border-color: var(--hit-border) !important; color:#065f46;
     box-shadow: inset 0 0 0 3px var(--hit);
     text-decoration: underline; text-decoration-thickness: 3px;
   }
+
   .result{
     background:#f8fafc; border:1px dashed var(--border); border-radius:14px;
-    padding:12px; margin-top:14px; color:#111;
+    padding:12px; margin-top:14px; color:#111; font-size: clamp(14px,3.4vw,16px);
   }
   .result b{display:inline-block; margin-right:6px}
   .empty{color:var(--muted)}
-  .footer{color:var(--muted); font-size:14px; margin-top:10px}
+  .footer{color:var(--muted); font-size:clamp(12px,3vw,14px); margin-top:10px}
 </style>
 </head>
 <body>
   <div class="wrap">
     <h1>公約数を見つけよう！</h1>
+
     <div class="card" role="group" aria-label="入力エリア">
+      <!-- 入力 -->
       <div class="row" style="margin-bottom:10px">
         <div class="picker grow">
           <label for="a">数１</label>
           <div class="nbox">
             <button type="button" aria-label="数１を1へらす" onclick="step('a',-1)">−</button>
-            <input id="a" type="number" min="1" value="4" inputmode="numeric" oninput="clamp('a'); render()">
+            <input id="a" type="number" min="1" value="12" inputmode="numeric" oninput="clamp('a'); render()">
             <button type="button" aria-label="数１を1ふやす" onclick="step('a',1)">＋</button>
           </div>
         </div>
@@ -110,41 +155,52 @@
           <label for="b">数２</label>
           <div class="nbox">
             <button type="button" aria-label="数２を1へらす" onclick="step('b',-1)">−</button>
-            <input id="b" type="number" min="1" value="6" inputmode="numeric" oninput="clamp('b'); render()">
+            <input id="b" type="number" min="1" value="18" inputmode="numeric" oninput="clamp('b'); render()">
             <button type="button" aria-label="数２を1ふやす" onclick="step('b',1)">＋</button>
           </div>
         </div>
       </div>
 
-      <div class="actions" style="margin:8px 0 4px">
-        <button class="btn icon" onclick="findCommon()">🟢 公約数を見つける</button>
-        <button class="btn secondary icon" onclick="resetAll()">🔄 リセット</button>
+      <!-- 操作（常に見える） -->
+      <div class="actions">
+        <button class="btn" onclick="findCommon()">🟢 公約数を見つける</button>
+        <button class="btn secondary" onclick="resetAll()">🔄 リセット</button>
       </div>
 
-      <div class="label">
-        数１（1 〜 <span id="amax">4</span>）
-        <span class="legend" aria-hidden="true">
-          <span class="box y"></span>数１の約数
-          <span class="box g"></span>公約数（緑の強調）
-        </span>
-      </div>
-      <div id="gridA" class="grid" aria-live="polite"></div>
+      <!-- 表示パネル（縦：上下／横：左右） -->
+      <div class="panes">
+        <section>
+          <div class="label">
+            数１（1 〜 <span id="amax">12</span>）
+            <span class="legend" aria-hidden="true">
+              <span class="box y"></span>数１の約数
+              <span class="box g"></span>公約数（緑の強調）
+            </span>
+          </div>
+          <div id="gridA" class="grid" aria-live="polite"></div>
+        </section>
 
-      <div class="label">
-        数２（1 〜 <span id="bmax">6</span>）
-        <span class="legend" aria-hidden="true">
-          <span class="box p"></span>数２の約数
-          <span class="box g"></span>公約数（緑の強調）
-        </span>
+        <section>
+          <div class="label">
+            数２（1 〜 <span id="bmax">18</span>）
+            <span class="legend" aria-hidden="true">
+              <span class="box p"></span>数２の約数
+              <span class="box g"></span>公約数（緑の強調）
+            </span>
+          </div>
+          <div id="gridB" class="grid" aria-live="polite"></div>
+        </section>
       </div>
-      <div id="gridB" class="grid" aria-live="polite"></div>
 
+      <!-- 結果 -->
       <div class="result" id="resultBox" aria-live="polite">
         <div id="listLine" class="empty">公約数がここに表示されます。</div>
         <div id="gcdLine" class="empty">最大公約数：—</div>
       </div>
 
-      <div class="footer">各段の「薄い色」がその段の約数、ボタンを押すと公約数が緑で表示されます。</div>
+      <div class="footer">
+       薄い色は各段の「約数」。ボタンを押すと公約数が緑で表示。
+      </div>
     </div>
   </div>
 
@@ -178,18 +234,18 @@
   }
 
   function paintDivisors(a,b){
-    // まず全リセット
+    // リセット
     [...gridA.children, ...gridB.children].forEach(ch=>{
       ch.classList.remove('divA','divB','hit');
     });
-    // 数１の約数（上段：薄い黄色）
+    // 数１の約数（薄い黄色）
     for(let i=1;i<=a;i++){
       if(a % i === 0){
         const el = gridA.children[i-1];
         if(el) el.classList.add('divA');
       }
     }
-    // 数２の約数（下段：薄いピンク）
+    // 数２の約数（薄いピンク）
     for(let i=1;i<=b;i++){
       if(b % i === 0){
         const el = gridB.children[i-1];
@@ -213,7 +269,7 @@
       if(A) A.classList.add('hit');
       if(B) B.classList.add('hit');
     }
-    // 結果テキスト
+    // 結果
     if(commons.length){
       listLine.classList.remove('empty');
       listLine.innerHTML = `<b>公約数：</b> ${commons.join('、')}`;
@@ -240,14 +296,14 @@
     gcdLine.textContent = "最大公約数：—";
   }
 
-  function findCommon(){
-    highlightCommon(val('a'), val('b'));
-  }
+  function findCommon(){ highlightCommon(val('a'), val('b')); }
 
   function resetAll(){
-    document.getElementById('a').value = 4;
-    document.getElementById('b').value = 6;
+    document.getElementById('a').value = 12;
+    document.getElementById('b').value = 18;
     render();
+    // 画面先頭へ（モバイルで使いやすく）
+    window.scrollTo({top:0, behavior:'smooth'});
   }
 
   // 初期化
