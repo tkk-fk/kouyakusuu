@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>公約数を見つけよう！</title>
+<style>
+  :root{
+    --bg:#f7f8fb; --ink:#111827; --muted:#6b7280; --card:#ffffff; --border:#e5e7eb;
+    --hit:#10b981;           /* 公約数（緑） */
+    --hit-border:#065f46;
+    --accent:#2563eb;        /* ボタン色 */
+    --radius:18px; --shadow:0 8px 22px rgba(0,0,0,.06);
+    --cell-min:56px; --gap:10px;
+    --divA-bg:#fff7cc;       /* 数１の約数（薄い黄色） */
+    --divA-bd:#f2cf4a;
+    --divB-bg:#ffe4ec;       /* 数２の約数（薄いピンク） */
+    --divB-bd:#f3a9bf;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{
+    margin:0; font-family: "Inter","BIZ UDPGothic","Hiragino Kaku Gothic ProN",system-ui,sans-serif;
+    background:var(--bg); color:var(--ink);
+    padding: clamp(10px, 2vw, 20px);
+  }
+  .wrap{max-width:980px; margin:0 auto}
+  .card{
+    background:var(--card); border:1px solid var(--border);
+    border-radius:var(--radius); box-shadow:var(--shadow);
+    padding: clamp(12px,2.5vw,20px);
+  }
+  h1{font-size:clamp(22px,3.5vw,32px); margin:.2em 0 .6em}
+  .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
+  .grow{flex:1}
+  .picker{
+    display:flex; align-items:center; gap:8px;
+    background:#fff; border:1px solid var(--border); border-radius:14px; padding:8px;
+  }
+  .picker label{font-weight:700; color:#111; min-width:3em}
+  .nbox{
+    display:flex; align-items:center; gap:6px;
+    background:#f9fafb; border:1px solid var(--border); border-radius:12px; padding:6px;
+  }
+  .nbox input{
+    width:90px; font-size:20px; padding:8px 10px; border:1px solid var(--border); border-radius:10px;
+  }
+  .nbox button{
+    width:44px; height:44px; border-radius:12px; border:1px solid var(--border); background:#fff; font-size:20px; cursor:pointer;
+  }
+  .actions{display:flex; gap:10px; flex-wrap:wrap}
+  .btn{
+    appearance:none; border:none; cursor:pointer;
+    background:var(--accent); color:#fff; font-weight:700;
+    padding:14px 18px; border-radius:14px; font-size:18px;
+  }
+  .btn.secondary{background:#fff; color:#111; border:1px solid var(--border)}
+  .btn.icon{display:flex; align-items:center; gap:8px}
+  .grid{
+    display:grid; gap:var(--gap);
+    grid-template-columns: repeat(auto-fill, minmax(min(70px, 16vw), 1fr));
+  }
+  .label{
+    font-weight:700; color:#111; margin:18px 0 8px;
+    display:flex; align-items:center; gap:8px;
+  }
+  .legend{display:flex; gap:10px; align-items:center; font-size:14px; color:var(--muted)}
+  .legend .box{width:14px; height:14px; border-radius:4px; border:1px solid var(--border)}
+  .legend .y{background:var(--divA-bg); border-color:var(--divA-bd)}
+  .legend .p{background:var(--divB-bg); border-color:var(--divB-bd)}
+  .legend .g{background:#ecfdf5; border-color:var(--hit-border)}
+  .chip{
+    display:inline-flex; align-items:center; justify-content:center;
+    min-width:var(--cell-min); min-height:var(--cell-min);
+    background:#fff; border:2px solid #e5e7eb; border-radius:12px;
+    font-size:20px; user-select:none;
+  }
+  /* 約数の色付け（段ごと） */
+  .chip.divA{ background: var(--divA-bg); border-color: var(--divA-bd); }
+  .chip.divB{ background: var(--divB-bg); border-color: var(--divB-bd); }
+  /* 共通の強調（公約数ボタン押下後） */
+  .chip.hit{
+    background:#ecfdf5 !important; border-color: var(--hit-border) !important; color:#065f46;
+    box-shadow: inset 0 0 0 3px var(--hit);
+    text-decoration: underline; text-decoration-thickness: 3px;
+  }
+  .result{
+    background:#f8fafc; border:1px dashed var(--border); border-radius:14px;
+    padding:12px; margin-top:14px; color:#111;
+  }
+  .result b{display:inline-block; margin-right:6px}
+  .empty{color:var(--muted)}
+  .footer{color:var(--muted); font-size:14px; margin-top:10px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>公約数を見つけよう！</h1>
+    <div class="card" role="group" aria-label="入力エリア">
+      <div class="row" style="margin-bottom:10px">
+        <div class="picker grow">
+          <label for="a">数１</label>
+          <div class="nbox">
+            <button type="button" aria-label="数１を1へらす" onclick="step('a',-1)">−</button>
+            <input id="a" type="number" min="1" value="4" inputmode="numeric" oninput="clamp('a'); render()">
+            <button type="button" aria-label="数１を1ふやす" onclick="step('a',1)">＋</button>
+          </div>
+        </div>
+        <div class="picker grow">
+          <label for="b">数２</label>
+          <div class="nbox">
+            <button type="button" aria-label="数２を1へらす" onclick="step('b',-1)">−</button>
+            <input id="b" type="number" min="1" value="6" inputmode="numeric" oninput="clamp('b'); render()">
+            <button type="button" aria-label="数２を1ふやす" onclick="step('b',1)">＋</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="actions" style="margin:8px 0 4px">
+        <button class="btn icon" onclick="findCommon()">🟢 公約数を見つける</button>
+        <button class="btn secondary icon" onclick="resetAll()">🔄 リセット</button>
+      </div>
+
+      <div class="label">
+        数１（1 〜 <span id="amax">4</span>）
+        <span class="legend" aria-hidden="true">
+          <span class="box y"></span>数１の約数
+          <span class="box g"></span>公約数（緑の強調）
+        </span>
+      </div>
+      <div id="gridA" class="grid" aria-live="polite"></div>
+
+      <div class="label">
+        数２（1 〜 <span id="bmax">6</span>）
+        <span class="legend" aria-hidden="true">
+          <span class="box p"></span>数２の約数
+          <span class="box g"></span>公約数（緑の強調）
+        </span>
+      </div>
+      <div id="gridB" class="grid" aria-live="polite"></div>
+
+      <div class="result" id="resultBox" aria-live="polite">
+        <div id="listLine" class="empty">公約数がここに表示されます。</div>
+        <div id="gcdLine" class="empty">最大公約数：—</div>
+      </div>
+
+      <div class="footer">ヒント：各段の「薄い色」がその段の約数、ボタンを押すと共通のものが緑で強調されます。</div>
+    </div>
+  </div>
+
+<script>
+  const gridA = document.getElementById('gridA');
+  const gridB = document.getElementById('gridB');
+  const amax = document.getElementById('amax');
+  const bmax = document.getElementById('bmax');
+  const listLine = document.getElementById('listLine');
+  const gcdLine = document.getElementById('gcdLine');
+
+  function val(id){ return Math.max(1, parseInt(document.getElementById(id).value || "1",10)); }
+  function clamp(id){
+    const el = document.getElementById(id);
+    if(!el.value || +el.value < 1) el.value = 1;
+  }
+  function step(id, delta){
+    const el = document.getElementById(id);
+    el.value = Math.max(1, (parseInt(el.value||"1",10) + delta));
+    render();
+  }
+
+  function makeRow(n, target){
+    target.innerHTML = "";
+    for(let i=1;i<=n;i++){
+      const d = document.createElement('div');
+      d.className = 'chip'; d.textContent = i;
+      d.dataset.v = i;
+      target.appendChild(d);
+    }
+  }
+
+  function paintDivisors(a,b){
+    // まず全リセット
+    [...gridA.children, ...gridB.children].forEach(ch=>{
+      ch.classList.remove('divA','divB','hit');
+    });
+    // 数１の約数（上段：薄い黄色）
+    for(let i=1;i<=a;i++){
+      if(a % i === 0){
+        const el = gridA.children[i-1];
+        if(el) el.classList.add('divA');
+      }
+    }
+    // 数２の約数（下段：薄いピンク）
+    for(let i=1;i<=b;i++){
+      if(b % i === 0){
+        const el = gridB.children[i-1];
+        if(el) el.classList.add('divB');
+      }
+    }
+  }
+
+  function highlightCommon(a,b){
+    // 既存のhitだけ外す（divA/divBは残す）
+    [...gridA.children, ...gridB.children].forEach(ch => ch.classList.remove('hit'));
+
+    const commons = [];
+    const limit = Math.min(a,b);
+    for(let i=1;i<=limit;i++){
+      if(a % i === 0 && b % i === 0) commons.push(i);
+    }
+    for(const c of commons){
+      const A = gridA.children[c-1];
+      const B = gridB.children[c-1];
+      if(A) A.classList.add('hit');
+      if(B) B.classList.add('hit');
+    }
+    // 結果テキスト
+    if(commons.length){
+      listLine.classList.remove('empty');
+      listLine.innerHTML = `<b>公約数：</b> ${commons.join('、')}`;
+      gcdLine.classList.remove('empty');
+      gcdLine.innerHTML = `<b>最大公約数：</b> ${commons[commons.length-1]}`;
+    }else{
+      listLine.classList.remove('empty');
+      listLine.textContent = "公約数：なし";
+      gcdLine.classList.remove('empty');
+      gcdLine.textContent = "最大公約数：—";
+    }
+  }
+
+  function render(){
+    const a = val('a'), b = val('b');
+    amax.textContent = a; bmax.textContent = b;
+    makeRow(a, gridA);
+    makeRow(b, gridB);
+    paintDivisors(a,b);
+    // 未判定文言へ
+    listLine.classList.add('empty');
+    gcdLine.classList.add('empty');
+    listLine.textContent = "公約数がここに表示されます。";
+    gcdLine.textContent = "最大公約数：—";
+  }
+
+  function findCommon(){
+    highlightCommon(val('a'), val('b'));
+  }
+
+  function resetAll(){
+    document.getElementById('a').value = 4;
+    document.getElementById('b').value = 6;
+    render();
+  }
+
+  // 初期化
+  render();
+</script>
+</body>
+</html>
