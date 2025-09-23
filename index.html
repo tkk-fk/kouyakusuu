@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>公約数を見つけよう！（縦固定）</title>
+<title>公約数を見つけよう！（縦固定／モバイル対応）</title>
 <style>
   :root{
     --chip: clamp(44px, 9vw, 80px);        /* タイルの最小一辺 */
@@ -67,7 +67,6 @@
   }
   .nbox button:active{transform:scale(.98)}
 
-  /* 操作ボタン群（常に見える） */
   .actions{
     position: sticky; top: calc(env(safe-area-inset-top) + 6px);
     background:linear-gradient(#fff, #fff0);
@@ -84,10 +83,10 @@
   .btn.secondary{background:#fff; color:#111; border:1px solid var(--border)}
   .btn:active{transform:translateY(1px)}
 
-  /* ★ 縦固定：常に上下に並べる（一列グリッド） */
+  /* 一列固定（数１が上、数２が下） */
   .panes{
     display:grid; gap: var(--gap);
-    grid-template-columns: 1fr;  /* ← 一列に固定 */
+    grid-template-columns: 1fr;
   }
 
   .label{
@@ -138,7 +137,7 @@
           <label for="a">数１</label>
           <div class="nbox">
             <button type="button" aria-label="数１を1へらす" onclick="step('a',-1)">−</button>
-            <input id="a" type="number" min="1" value="2" inputmode="numeric" oninput="clamp('a'); render()">
+            <input id="a" type="number" min="1" value="12" inputmode="numeric" oninput="clamp('a'); render()">
             <button type="button" aria-label="数１を1ふやす" onclick="step('a',1)">＋</button>
           </div>
         </div>
@@ -146,7 +145,7 @@
           <label for="b">数２</label>
           <div class="nbox">
             <button type="button" aria-label="数２を1へらす" onclick="step('b',-1)">−</button>
-            <input id="b" type="number" min="1" value="3" inputmode="numeric" oninput="clamp('b'); render()">
+            <input id="b" type="number" min="1" value="18" inputmode="numeric" oninput="clamp('b'); render()">
             <button type="button" aria-label="数２を1ふやす" onclick="step('b',1)">＋</button>
           </div>
         </div>
@@ -158,91 +157,51 @@
         <button class="btn secondary" onclick="resetAll()">🔄 リセット</button>
       </div>
 
-      <!-- ★ 表示パネル（縦固定：数１が上、数２が下） -->
+      <!-- 表示パネル（縦固定：数１が上、数２が下） -->
       <div class="panes">
         <section>
-<!-- 数１ 見出し -->
-<div class="label">
-  <span id="labelA">数１の約数</span>
-  <span class="legend" aria-hidden="true">
-    <span class="box y"></span>数１の約数
-    <span class="box g"></span>公約数（緑の強調）
-  </span>
-</div>
+          <div class="label">
+            <span id="labelA">数１の約数</span>
+            <span class="legend" aria-hidden="true">
+              <span class="box y"></span>数１の約数
+              <span class="box g"></span>公約数（緑の強調）
+            </span>
+          </div>
+          <div id="gridA" class="grid" aria-live="polite"></div>
         </section>
 
         <section>
-<!-- 数２ 見出し -->
-<div class="label">
-  <span id="labelB">数２の約数</span>
-  <span class="legend" aria-hidden="true">
-    <span class="box p"></span>数２の約数
-    <span class="box g"></span>公約数（緑の強調）
-  </span>
-</div>
+          <div class="label">
+            <span id="labelB">数２の約数</span>
+            <span class="legend" aria-hidden="true">
+              <span class="box p"></span>数２の約数
+              <span class="box g"></span>公約数（緑の強調）
+            </span>
+          </div>
+          <div id="gridB" class="grid" aria-live="polite"></div>
         </section>
       </div>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-      
       <!-- 結果 -->
       <div class="result" id="resultBox" aria-live="polite">
         <div id="listLine" class="empty">公約数がここに表示されます。</div>
         <div id="gcdLine" class="empty">最大公約数：—</div>
       </div>
+
+      <div class="footer">
+        ヒント：薄い色は各段の「約数」。ボタンを押すと共通のものが緑で強調されます。<br/>
+        ※ 端末の向きが変わっても、数１は上、数２は下に固定です。
+      </div>
     </div>
   </div>
 
-
-
-
-
-
-
-
-
-
-
-
-  
 <script>
- const labelA = document.getElementById('labelA');
-const labelB = document.getElementById('labelB');
-
-function render(){
-  const a = val('a'), b = val('b');
-  amax.textContent = a; bmax.textContent = b;
-
-  // ★ 見出しを「nの約数」に更新
-  labelA.textContent = `${a}の約数`;
-  labelB.textContent = `${b}の約数`;
-
-  makeRow(a, gridA);
-  makeRow(b, gridB);
-  paintDivisors(a,b);
-
-  // 未判定文言へ
-  listLine.classList.add('empty');
-  gcdLine.classList.add('empty');
-  listLine.textContent = "公約数がここに表示されます。";
-  gcdLine.textContent = "最大公約数：—";
-}
-  const amax = document.getElementById('amax');
-  const bmax = document.getElementById('bmax');
+  const gridA = document.getElementById('gridA');
+  const gridB = document.getElementById('gridB');
   const listLine = document.getElementById('listLine');
   const gcdLine = document.getElementById('gcdLine');
+  const labelA = document.getElementById('labelA');
+  const labelB = document.getElementById('labelB');
 
   function val(id){ return Math.max(1, parseInt(document.getElementById(id).value || "1",10)); }
   function clamp(id){
@@ -317,10 +276,15 @@ function render(){
 
   function render(){
     const a = val('a'), b = val('b');
-    amax.textContent = a; bmax.textContent = b;
+
+    // ★ 見出しを「nの約数」に更新
+    labelA.textContent = `${a}の約数`;
+    labelB.textContent = `${b}の約数`;
+
     makeRow(a, gridA);
     makeRow(b, gridB);
     paintDivisors(a,b);
+
     // 未判定文言へ
     listLine.classList.add('empty');
     gcdLine.classList.add('empty');
@@ -342,3 +306,4 @@ function render(){
 </script>
 </body>
 </html>
+
