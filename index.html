@@ -161,28 +161,42 @@
       <!-- ★ 表示パネル（縦固定：数１が上、数２が下） -->
       <div class="panes">
         <section>
-          <div class="label">
-            数１（1 〜 <span id="amax">12</span>）
-            <span class="legend" aria-hidden="true">
-              <span class="box y"></span>約数
-              <span class="box g"></span>公約数
-            </span>
-          </div>
-          <div id="gridA" class="grid" aria-live="polite"></div>
+<!-- 数１ 見出し -->
+<div class="label">
+  <span id="labelA">数１の約数</span>
+  <span class="legend" aria-hidden="true">
+    <span class="box y"></span>数１の約数
+    <span class="box g"></span>公約数（緑の強調）
+  </span>
+</div>
         </section>
 
         <section>
-          <div class="label">
-            数２（1 〜 <span id="bmax">18</span>）
-            <span class="legend" aria-hidden="true">
-              <span class="box p"></span>約数
-              <span class="box g"></span>公約数
-            </span>
-          </div>
-          <div id="gridB" class="grid" aria-live="polite"></div>
+<!-- 数２ 見出し -->
+<div class="label">
+  <span id="labelB">数２の約数</span>
+  <span class="legend" aria-hidden="true">
+    <span class="box p"></span>数２の約数
+    <span class="box g"></span>公約数（緑の強調）
+  </span>
+</div>
         </section>
       </div>
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+      
       <!-- 結果 -->
       <div class="result" id="resultBox" aria-live="polite">
         <div id="listLine" class="empty">公約数がここに表示されます。</div>
@@ -191,9 +205,40 @@
     </div>
   </div>
 
+
+
+
+
+
+
+
+
+
+
+
+  
 <script>
-  const gridA = document.getElementById('gridA');
-  const gridB = document.getElementById('gridB');
+ const labelA = document.getElementById('labelA');
+const labelB = document.getElementById('labelB');
+
+function render(){
+  const a = val('a'), b = val('b');
+  amax.textContent = a; bmax.textContent = b;
+
+  // ★ 見出しを「nの約数」に更新
+  labelA.textContent = `${a}の約数`;
+  labelB.textContent = `${b}の約数`;
+
+  makeRow(a, gridA);
+  makeRow(b, gridB);
+  paintDivisors(a,b);
+
+  // 未判定文言へ
+  listLine.classList.add('empty');
+  gcdLine.classList.add('empty');
+  listLine.textContent = "公約数がここに表示されます。";
+  gcdLine.textContent = "最大公約数：—";
+}
   const amax = document.getElementById('amax');
   const bmax = document.getElementById('bmax');
   const listLine = document.getElementById('listLine');
