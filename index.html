@@ -3,10 +3,9 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>公約数を見つけよう！（モバイル対応）</title>
+<title>公約数を見つけよう！（縦固定）</title>
 <style>
   :root{
-    /* 自動可変（スマホ〜タブレット〜PC） */
     --chip: clamp(44px, 9vw, 80px);        /* タイルの最小一辺 */
     --gap: clamp(6px, 1.8vw, 14px);        /* グリッド間隔 */
     --pad: clamp(10px, 2.4vw, 20px);       /* 全体のパディング */
@@ -39,7 +38,6 @@
   }
   h1{font-size:clamp(20px, 4.8vw, 32px); margin:.2em 0 .6em}
 
-  /* 上部の入力行：モバイルは縦積み、横向きや広い画面で横並び */
   .row{display:flex; gap:12px; flex-wrap:wrap; align-items:center}
   .grow{flex:1}
   .picker{
@@ -69,7 +67,7 @@
   }
   .nbox button:active{transform:scale(.98)}
 
-  /* 操作ボタン群を常に見えるように（カード上部に張り付き） */
+  /* 操作ボタン群（常に見える） */
   .actions{
     position: sticky; top: calc(env(safe-area-inset-top) + 6px);
     background:linear-gradient(#fff, #fff0);
@@ -86,15 +84,10 @@
   .btn.secondary{background:#fff; color:#111; border:1px solid var(--border)}
   .btn:active{transform:translateY(1px)}
 
-  /* 縦＝上下に、横＝左右に並べるためのラッパー */
+  /* ★ 縦固定：常に上下に並べる（一列グリッド） */
   .panes{
     display:grid; gap: var(--gap);
-  }
-  @media (orientation: landscape) and (min-width: 700px){
-    .panes{
-      grid-template-columns: 1fr 1fr;
-      align-items:start;
-    }
+    grid-template-columns: 1fr;  /* ← 一列に固定 */
   }
 
   .label{
@@ -117,10 +110,8 @@
     background:#fff; border:2px solid #e5e7eb; border-radius:12px;
     font-size: clamp(18px, 4.6vw, 22px); user-select:none;
   }
-  /* 約数の色付け（段ごと） */
   .chip.divA{ background: var(--divA-bg); border-color: var(--divA-bd); }
   .chip.divB{ background: var(--divB-bg); border-color: var(--divB-bd); }
-  /* 共通の強調（公約数） */
   .chip.hit{
     background:#ecfdf5 !important; border-color: var(--hit-border) !important; color:#065f46;
     box-shadow: inset 0 0 0 3px var(--hit);
@@ -167,7 +158,7 @@
         <button class="btn secondary" onclick="resetAll()">🔄 リセット</button>
       </div>
 
-      <!-- 表示パネル（縦：上下／横：左右） -->
+      <!-- ★ 表示パネル（縦固定：数１が上、数２が下） -->
       <div class="panes">
         <section>
           <div class="label">
@@ -199,7 +190,8 @@
       </div>
 
       <div class="footer">
-       薄い色は各段の「約数」。ボタンを押すと公約数が緑で表示。
+        ヒント：薄い色は各段の「約数」。ボタンを押すと共通のものが緑で強調されます。<br/>
+        ※ 端末の向きが変わっても、数１は上、数２は下に固定です。
       </div>
     </div>
   </div>
@@ -302,7 +294,6 @@
     document.getElementById('a').value = 12;
     document.getElementById('b').value = 18;
     render();
-    // 画面先頭へ（モバイルで使いやすく）
     window.scrollTo({top:0, behavior:'smooth'});
   }
 
