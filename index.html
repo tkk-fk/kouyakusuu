@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-<title>公約数を見つけよう！（縦固定／モバイル対応）</title>
+<title>公約数を見つけよう！</title>
 <style>
   :root{
     --chip: clamp(44px, 9vw, 80px);        /* タイルの最小一辺 */
@@ -137,7 +137,7 @@
           <label for="a">数１</label>
           <div class="nbox">
             <button type="button" aria-label="数１を1へらす" onclick="step('a',-1)">−</button>
-            <input id="a" type="number" min="1" value="12" inputmode="numeric" oninput="clamp('a'); render()">
+            <input id="a" type="number" min="1" value="2" inputmode="numeric" oninput="clamp('a'); render()">
             <button type="button" aria-label="数１を1ふやす" onclick="step('a',1)">＋</button>
           </div>
         </div>
@@ -145,7 +145,7 @@
           <label for="b">数２</label>
           <div class="nbox">
             <button type="button" aria-label="数２を1へらす" onclick="step('b',-1)">−</button>
-            <input id="b" type="number" min="1" value="18" inputmode="numeric" oninput="clamp('b'); render()">
+            <input id="b" type="number" min="1" value="3" inputmode="numeric" oninput="clamp('b'); render()">
             <button type="button" aria-label="数２を1ふやす" onclick="step('b',1)">＋</button>
           </div>
         </div>
@@ -188,10 +188,6 @@
         <div id="gcdLine" class="empty">最大公約数：—</div>
       </div>
 
-      <div class="footer">
-        ヒント：薄い色は各段の「約数」。ボタンを押すと共通のものが緑で強調されます。<br/>
-        ※ 端末の向きが変わっても、数１は上、数２は下に固定です。
-      </div>
     </div>
   </div>
 
